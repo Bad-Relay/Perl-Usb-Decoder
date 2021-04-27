@@ -1,10 +1,16 @@
-#!/usr/bin/perl 
-
-$hex_data = "hex.dat";
+#!/usr/bin/perl
 
 $pcap = @ARGV[0];
 
 @result = ();
+
+
+unless (-e $pcap){
+
+print("File not found. Please try again.\n");
+exit;
+
+}
 
 %lower_case = ( "04" => "a",
                 "05" => "b",
@@ -101,11 +107,10 @@ $pcap = @ARGV[0];
                 "2d" => "_" 
                 ) ;
 
-system("tshark -r $pcap -T fields -e usb.capdata 'usb.data_len == 8' > hex.dat");
 
-open(data, "<", "hex.dat");
+@usb = `tshark -r $pcap -T fields -e usb.capdata 'usb.data_len == 8'`;
 
-while(<data>){
+foreach(@usb){
         if(/^02[0-9]{2}(?!00)([0-9a-z]{2})[0-9]+/gm){
          $find_upper = $upper_case{$1};
         push @result, $find_upper ;
@@ -120,5 +125,5 @@ while(<data>){
                 #print("$test");
         }
 }
-close(data);
+
 print(@result, "\n");
