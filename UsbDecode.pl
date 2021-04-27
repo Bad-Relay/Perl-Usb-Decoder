@@ -5,14 +5,16 @@ $pcap = @ARGV[0];
 @result = ();
 
 
-unless (-e $pcap){
+unless (-e $pcap){ #if the file does not exist give the user an error 
 
 print("File not found. Please try again.\n");
+print("Example use:\n perl UsbDecode.pl capture.pcap\n");
 exit;
 
 }
 
-%lower_case = ( "04" => "a",
+
+%lower_case = ( "04" => "a", #table for lowercase keyboard 
                 "05" => "b",
                 "06" => "c", 
                 "07" => "d",
@@ -54,13 +56,34 @@ exit;
                 "29" => "<ESC>",
                 "2a" => "<DEL>",
                 "2c" => " ", #space
-                "2f" => "[",
+                "2d" => "-",
+		"2e" => "=",
+		"2f" => "[",
                 "30" => "]",
+		"31" => "\\",
+		"32" => "<NON>",
+		"33" => ":",
+		"34" => "'",
+		"35" => "<GA>",
+		"36" => ",",
                 "37" => ".",
-                "2d" => "-"
+		"38" => "/",
+		"39" => "<CAP>",
+		"3a" => "<F1>",
+		"3b" => "<F2>",
+		"3c" => "<F3>",
+		"3d" => "<F4>",
+		"3e" => "<F5>",
+		"3f" => "<F6>",
+		"40" => "<F7>",
+		"41" => "<F8>",
+		"42" => "<F9>",
+		"43" => "<F10>",
+		"44" => "<F11>",
+		"45" => "<F12>"
                 ) ;
 
-%upper_case = ( "04" => "A",
+%upper_case = ( "04" => "A", #table for upper case keyboard 
                 "05" => "B",
                 "06" => "C",
                 "07" => "D",
@@ -104,25 +127,45 @@ exit;
                 "2c" => " ", #space
                 "2f" => "{",
                 "30" => "}",
+		"31" => "|",
+		"32" => "<NON>",
+		"33" => "\"",
+		"34" => ":",
+		"35" => "<GA>",
+		"36" => "<",
+		"37" => ">",
+		"38" => "?",
+		"39" => "<CAP>",
+		"3a" => "<F1>",
+		"3b" => "<F2>",
+		"3c" => "<F3>",
+		"3d" => "<F4>",
+		"3e" => "<F5>",
+		"3f" => "<F6>",
+		"40" => "<F7>",
+		"41" => "<F8>",
+		"42" => "<F9>",
+		"43" => "<F10>",
+		"44" => "<F11>",
+		"45" => "<F12>",
                 "2d" => "_" 
                 ) ;
 
 
-@usb = `tshark -r $pcap -T fields -e usb.capdata 'usb.data_len == 8'`;
+@usb = `tshark -r $pcap -T fields -e usb.capdata 'usb.data_len == 8'`; # Runs the tshark command to get the keyboard keys and saves it to an array
 
 foreach(@usb){
-        if(/^02[0-9]{2}(?!00)([0-9a-z]{2})[0-9]+/gm){
+        if(/^02[0-9]{2}(?!00)([0-9a-z]{2})[0-9]+/gm){ #If the key starts with 02 add it to the upercase array
          $find_upper = $upper_case{$1};
         push @result, $find_upper ;
         }
-        elsif(/^[0-9]{4}([2a]{2})[0-9]+/gm){
+        elsif(/^[0-9]{4}([2a]{2})[0-9]+/gm){ #If the DEL key was pressed then remove the last letter 
 
                 pop @result;
         }
-        elsif(/^[0-9]{4}(?!00)([0-9a-z]{2})[0-9]+/gm){
+        elsif(/^[0-9]{4}(?!00)([0-9a-z]{2})[0-9]+/gm){ #If it's a lowercase key add it to the result array 
                 $test = $lower_case{$1};
                 push @result, $test;
-                #print("$test");
         }
 }
 
